@@ -1,1053 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Kilari Karthikeya Naidu</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#07070e;--bg2:#0c0c18;--bg3:#10101f;
-  --card:#13131f;--card2:#191928;
-  --red:#ff5e41;--red2:#ff8066;--red3:rgba(255,94,65,0.12);
-  --purple:#a78bfa;--purple2:rgba(167,139,250,0.12);
-  --text:#ede9ff;--text2:#7e7a9a;--text3:#3d3a56;
-  --border:rgba(255,255,255,0.055);--border2:rgba(255,94,65,0.25);
-  --glow:rgba(255,94,65,0.18);
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--card2);border-radius:3px}
-a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit;border:none;background:none}
-img{display:block;max-width:100%}
-
-/* ── CANVAS ── */
-#c{position:fixed;inset:0;z-index:0;pointer-events:none}
-
-/* ── PAGE WRAPPER ── */
-.pg{position:relative;z-index:1}
-
-/* ── CURSOR ── */
-.cur,.cur-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:9000;transform:translate(-50%,-50%)}
-.cur{width:8px;height:8px;background:var(--red);transition:transform .1s}
-.cur-ring{width:32px;height:32px;border:1px solid rgba(255,94,65,.5);transition:transform .18s ease,width .2s,height .2s}
-body:hover .cur{opacity:1}
-
-/* ── NAV ── */
-.nav{position:fixed;top:0;left:0;right:0;z-index:500;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 56px;background:rgba(7,7,14,.72);backdrop-filter:blur(28px);border-bottom:1px solid var(--border);transition:background .3s}
-.nav.solid{background:rgba(7,7,14,.97)}
-.logo{font-family:'Manrope',sans-serif;font-weight:900;font-size:20px;color:white;cursor:pointer;letter-spacing:-.5px}
-.logo em{color:var(--red);font-style:normal}
-.nav-mid{display:flex;gap:4px}
-.nl{padding:7px 15px;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--text2);cursor:pointer;transition:all .2s;background:none;border:none;font-family:'Space Grotesk',sans-serif}
-.nl:hover{color:var(--text);background:rgba(255,255,255,.05)}
-.nl.on{color:var(--red);background:var(--red3)}
-.nav-r{display:flex;gap:10px;align-items:center}
-.hbg{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px}
-.hbg span{display:block;width:22px;height:2px;background:var(--text2);border-radius:2px;transition:all .3s}
-
-/* ── MOBILE DRAWER ── */
-.drawer{position:fixed;top:64px;left:0;right:0;z-index:499;background:rgba(7,7,14,.98);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;gap:4px;transform:translateY(-105%);opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .3s;pointer-events:none}
-.drawer.open{transform:none;opacity:1;pointer-events:all}
-.dl{padding:13px 16px;border-radius:10px;font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px}
-.dl:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.dl.on{color:var(--red);background:var(--red3)}
-
-/* ── TOAST ── */
-#toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(50px);background:var(--red);color:white;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:12px 26px;border-radius:100px;opacity:0;z-index:9999;pointer-events:none;transition:all .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 32px rgba(255,94,65,.4)}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ── SECTION BASE ── */
-.sec{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:96px 56px 80px}
-.wrap{max-width:1120px;margin:0 auto;width:100%}
-.eye{font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--red);margin-bottom:12px}
-.sh{font-family:'Manrope',sans-serif;font-weight:800;font-size:clamp(2rem,4vw,3rem);color:white;letter-spacing:-.02em;line-height:1.05;margin-bottom:14px}
-.ss{font-size:15px;color:var(--text2);line-height:1.7;max-width:520px}
-
-/* ── HERO ── */
-#hero{min-height:100vh;display:flex;align-items:center;padding:0 56px}
-.hero-grid{max-width:1120px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 360px;gap:64px;align-items:center}
-.h-badge{display:inline-flex;align-items:center;gap:10px;padding:7px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--red3);margin-bottom:28px}
-.h-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pdot 2s ease-in-out infinite}
-@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.6)}}
-.h-badge-t{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--red2)}
-.h1{font-family:'Manrope',sans-serif;font-weight:900;font-size:clamp(3.5rem,8vw,7rem);color:white;letter-spacing:-.04em;line-height:.85;margin-bottom:8px}
-.h1-accent{color:var(--red);display:block;font-style:italic}
-.h-role{font-size:13px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:var(--text2);margin:20px 0}
-.h-tag{font-size:17px;color:var(--text2);line-height:1.75;max-width:500px;margin-bottom:44px}
-.h-tag em{color:var(--text);font-style:italic;font-weight:500}
-.h-btns{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:52px}
-.btn-red{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--red),#e84a2e);color:white;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:15px 34px;border-radius:100px;cursor:pointer;transition:all .3s;box-shadow:0 4px 24px rgba(255,94,65,.28);border:none;font-family:'Space Grotesk',sans-serif}
-.btn-red:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(255,94,65,.45)}
-.btn-red:active{transform:scale(.97)}
-.btn-ghost{display:inline-flex;align-items:center;gap:12px;background:transparent;color:var(--text);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:15px 32px;border-radius:100px;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:all .3s;font-family:'Space Grotesk',sans-serif}
-.btn-ghost:hover{border-color:var(--border2);background:var(--red3);transform:translateY(-2px)}
-.h-scroll{display:flex;align-items:center;gap:14px;color:var(--text3);font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;width:fit-content}
-.h-scroll-l{width:40px;height:1px;background:var(--text3);transition:all .4s}
-.h-scroll:hover .h-scroll-l{width:60px;background:var(--red)}
-.h-scroll:hover{color:var(--text2)}
-
-/* PROFILE CARD */
-.pcard{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px;position:relative;overflow:hidden;transform-style:preserve-3d;transition:transform .1s ease-out;box-shadow:0 32px 80px rgba(0,0,0,.6)}
-.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--purple),var(--red))}
-.pcard-shimmer{position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,94,65,.04) 50%,transparent 60%);transform:translateX(-100%);transition:transform .6s}
-.pcard:hover .pcard-shimmer{transform:translateX(100%)}
-.p-avatar{width:80px;height:80px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,rgba(255,94,65,.35),rgba(167,139,250,.3));border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-size:1.8rem;font-weight:900;color:white;text-shadow:0 0 20px rgba(255,94,65,.5);position:relative}
-.p-avatar::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,94,65,.2);animation:spin-av 10s linear infinite}
-@keyframes spin-av{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-.p-name{font-family:'Manrope',sans-serif;font-weight:800;font-size:15px;color:white;text-align:center;margin-bottom:3px}
-.p-title{font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--text2);text-align:center;margin-bottom:20px}
-.p-divider{height:1px;background:var(--border);margin-bottom:18px}
-.p-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.p-row:last-child{margin-bottom:0}
-.p-ico{width:34px;height:34px;border-radius:10px;background:var(--red3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.p-lbl{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:2px}
-.p-val{font-size:12px;font-weight:600;color:var(--text)}
-.p-status{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;margin-top:18px}
-.p-status-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pdot 2s ease-in-out infinite}
-.p-status-t{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#4ade80}
-
-/* ── ABOUT ── */
-#about{background:var(--bg2)}
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;margin-top:48px}
-.ab{font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:16px}
-.ab strong{color:var(--text);font-weight:600}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:28px}
-.st{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 12px;text-align:center;transition:all .3s}
-.st:hover{border-color:var(--border2);transform:translateY(-3px)}
-.st-n{font-family:'Manrope',sans-serif;font-weight:900;font-size:2rem;color:var(--red);line-height:1;margin-bottom:6px}
-.st-l{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3)}
-.ai-panel{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px;position:relative;overflow:hidden}
-.ai-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--purple))}
-.ai-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red)}
-.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pdot 2s ease-in-out infinite}
-.ai-r{border-left:2px solid rgba(255,94,65,.3);padding:14px 16px;margin-bottom:12px;border-radius:0 10px 10px 0;background:rgba(255,94,65,.03);transition:background .25s}
-.ai-r:last-child{margin-bottom:0}
-.ai-r:hover{background:rgba(255,94,65,.08)}
-.ai-r.p{border-left-color:rgba(167,139,250,.35);background:rgba(167,139,250,.03)}
-.ai-r.p:hover{background:rgba(167,139,250,.09)}
-.ai-who{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:6px;display:flex;align-items:center;gap:7px}
-.ai-r.p .ai-who{color:var(--purple)}
-.ai-txt{font-size:12.5px;color:var(--text2);line-height:1.7;font-style:italic}
-
-/* ── SKILLS ── */
-#skills{background:var(--bg3)}
-.sk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:44px}
-.sk{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 22px;position:relative;overflow:hidden;transition:all .3s}
-.sk:hover{border-color:var(--border2);transform:translateY(-4px);background:var(--card2)}
-.sk-glow{position:absolute;top:-40px;right:-40px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(255,94,65,.12),transparent 70%);opacity:0;transition:opacity .3s}
-.sk:hover .sk-glow{opacity:1}
-.sk-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--red3);margin-bottom:16px;transition:background .3s}
-.sk-ic.pu{background:var(--purple2)}
-.sk:hover .sk-ic{background:rgba(255,94,65,.2)}
-.sk:hover .sk-ic.pu{background:rgba(167,139,250,.2)}
-.sk-n{font-family:'Manrope',sans-serif;font-weight:700;font-size:16px;color:white;margin-bottom:6px}
-.sk-d{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:18px}
-.sk-t{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
-.sk-f{height:100%;border-radius:2px;width:0;transition:width 1.4s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--red),var(--red2))}
-.sk-f.pu{background:linear-gradient(90deg,var(--purple),var(--red2))}
-.sk-p{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-top:8px}
-.sk-p.pu{color:var(--purple)}
-
-/* ── PROJECTS ── */
-#projects{background:var(--bg2)}
-.pj-hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:44px;flex-wrap:wrap;gap:16px}
-.pj-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.pj{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;transition:all .35s;cursor:default}
-.pj:hover{border-color:var(--border2);transform:translateY(-6px);box-shadow:0 24px 64px rgba(0,0,0,.55)}
-.pj:hover .pj-name{color:var(--red)}
-.pj-thumb{height:190px;background:var(--card2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.pj-tc{transition:transform .5s ease}
-.pj:hover .pj-tc{transform:scale(1.07)}
-.pj-ov{position:absolute;inset:0;background:linear-gradient(to top,var(--card) 0%,transparent 50%)}
-.pj-tags{position:absolute;top:14px;left:14px;display:flex;gap:6px;flex-wrap:wrap}
-.tag{padding:4px 10px;border-radius:100px;font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);color:var(--text2)}
-.pj-n-big{position:absolute;bottom:10px;right:14px;font-family:'Manrope',sans-serif;font-weight:900;font-size:3rem;color:rgba(255,255,255,.04);line-height:1}
-.pj-body{padding:22px}
-.pj-logo{width:40px;height:40px;border-radius:10px;margin-bottom:12px;display:flex;align-items:center;justify-content:center}
-.pj-name{font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;color:white;margin-bottom:6px;transition:color .3s}
-.pj-desc{font-size:12.5px;color:var(--text2);line-height:1.65}
-
-/* ── JOURNEY ── */
-#journey{background:var(--bg3)}
-.tl{margin-top:44px;display:flex;flex-direction:column}
-.tl-item{display:grid;grid-template-columns:120px 1fr;gap:28px;padding-bottom:32px;position:relative}
-.tl-item:not(:last-child)::after{content:'';position:absolute;left:115px;top:20px;bottom:0;width:1px;background:var(--border)}
-.tl-l{display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-top:2px}
-.tl-dot{width:12px;height:12px;border-radius:50%;background:var(--red);box-shadow:0 0 12px rgba(255,94,65,.45);flex-shrink:0;margin-right:-5px;z-index:1;position:relative}
-.tl-date{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);text-align:right}
-.tl-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;transition:all .3s}
-.tl-card:hover{border-color:var(--border2);background:var(--card2)}
-.tl-role{font-family:'Manrope',sans-serif;font-weight:700;font-size:16px;color:white;margin-bottom:4px}
-.tl-org{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--red);margin-bottom:10px}
-.tl-desc{font-size:13px;color:var(--text2);line-height:1.65}
-
-/* ── HOBBIES ── */
-#hobbies{background:var(--bg2)}
-.hb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:40px}
-.hb{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 20px;display:flex;align-items:center;gap:16px;transition:all .3s}
-.hb:hover{border-color:var(--border2);transform:translateY(-3px);background:var(--card2)}
-.hb-ico{width:48px;height:48px;border-radius:14px;background:var(--red3);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;transition:background .3s}
-.hb:hover .hb-ico{background:rgba(255,94,65,.2)}
-.hb-n{font-size:14px;font-weight:600;color:var(--text)}
-.hb-s{font-size:11px;color:var(--text3);margin-top:3px}
-
-/* ── CONTACT ── */
-#contact{background:var(--bg);position:relative;overflow:hidden;min-height:100vh;display:flex;align-items:center}
-.c-orb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,94,65,.07) 0%,transparent 65%);pointer-events:none}
-.c-orb2{position:absolute;top:30%;left:20%;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.05) 0%,transparent 65%);pointer-events:none}
-.c-inner{position:relative;z-index:1;max-width:680px;margin:0 auto;width:100%;padding:0 32px}
-.c-title{font-family:'Manrope',sans-serif;font-weight:900;font-size:clamp(3rem,7vw,5.5rem);color:white;letter-spacing:-.04em;line-height:.88;margin-bottom:16px;text-align:center}
-.c-title span{color:var(--red);font-style:italic}
-.c-sub{text-align:center;font-size:15px;color:var(--text2);margin-bottom:44px;line-height:1.7}
-
-/* FORM */
-.form{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:36px;position:relative;overflow:hidden}
-.form::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--purple),var(--red))}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.fi{display:flex;flex-direction:column;gap:7px}
-.fi label{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text2)}
-.fi input,.fi textarea,.fi select{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;font-size:14px;color:var(--text);font-family:'Space Grotesk',sans-serif;outline:none;transition:border .25s,box-shadow .25s;resize:none}
-.fi input:focus,.fi textarea:focus{border-color:var(--border2);box-shadow:0 0 0 3px rgba(255,94,65,.1)}
-.fi textarea{min-height:110px}
-.fi-full{grid-column:1/-1}
-.form-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:20px}
-.form-info{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:8px}
-.btn-submit{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--red),#e84a2e);color:white;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:15px 36px;border-radius:100px;cursor:pointer;border:none;font-family:'Space Grotesk',sans-serif;transition:all .3s;box-shadow:0 4px 24px rgba(255,94,65,.3)}
-.btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(255,94,65,.5)}
-.btn-submit:active{transform:scale(.97)}
-.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.c-alts{display:flex;gap:16px;justify-content:center;margin-top:24px;flex-wrap:wrap}
-.c-alt{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:12px;background:var(--card);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .3s}
-.c-alt:hover{border-color:var(--border2);color:var(--text);background:var(--card2)}
-
-/* ── FOOTER ── */
-footer{background:var(--bg);border-top:1px solid var(--border);padding:28px 56px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;position:relative;z-index:1}
-.fl{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
-.fl strong{color:var(--red)}
-.f-links{display:flex;gap:20px}
-.f-lk{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);cursor:pointer;transition:color .25s;display:flex;align-items:center;gap:7px}
-.f-lk:hover{color:var(--red)}
-
-/* ── REVEAL ── */
-.rv{opacity:0;transform:translateY(30px);transition:opacity .75s ease,transform .75s ease}
-.rv.on{opacity:1;transform:none}
-.rv-l{opacity:0;transform:translateX(-28px);transition:opacity .75s ease,transform .75s ease}
-.rv-l.on{opacity:1;transform:none}
-.rv-r{opacity:0;transform:translateX(28px);transition:opacity .75s ease,transform .75s ease}
-.rv-r.on{opacity:1;transform:none}
-.rv-s{opacity:0;transform:scale(.94);transition:opacity .75s ease,transform .75s ease}
-.rv-s.on{opacity:1;transform:none}
-
-/* ── PAGE TRANSITION ── */
-.page-wipe{position:fixed;inset:0;background:var(--red);z-index:9998;transform:scaleY(0);transform-origin:top;pointer-events:none}
-
-/* ── RESPONSIVE ── */
-@media(max-width:1024px){
-  .hero-grid{grid-template-columns:1fr}.pcard-col{display:none}
-  .sk-grid{grid-template-columns:1fr 1fr}
-  .stats{grid-template-columns:1fr 1fr}
-  .about-grid{grid-template-columns:1fr;gap:36px}
-  .hb-grid{grid-template-columns:1fr 1fr}
-}
-@media(max-width:768px){
-  .nav{padding:0 20px}.nav-mid,.nav-r{display:none}.hbg{display:flex}
-  .sec,.sec-sm{padding:88px 20px 60px}
-  #hero{padding:0 20px}
-  .sk-grid{grid-template-columns:1fr}
-  .pj-grid{grid-template-columns:1fr}
-  .hb-grid{grid-template-columns:1fr 1fr}
-  .tl-item{grid-template-columns:1fr;gap:12px}
-  .tl-item:not(:last-child)::after{display:none}
-  .tl-l{flex-direction:row;align-items:center;justify-content:flex-start}
-  footer{padding:24px 20px;flex-direction:column;text-align:center}
-  .form-grid{grid-template-columns:1fr}
-  .form-bottom{flex-direction:column;align-items:stretch}
-  .btn-submit{text-align:center;justify-content:center}
-}
-</style>
-</head>
-<body>
-
-<!-- 3D Canvas -->
-<canvas id="c"></canvas>
-
-<!-- Custom cursor -->
-<div class="cur" id="cur"></div>
-<div class="cur-ring" id="curR"></div>
-
-<!-- Toast -->
-<div id="toast"></div>
-
-<!-- Page wipe -->
-<div class="page-wipe" id="wipe"></div>
-
-<!-- NAV -->
-<nav class="nav" id="nav">
-  <div class="logo" onclick="goTo('hero')">KK<em>N</em></div>
-  <div class="nav-mid">
-    <button class="nl on" onclick="goTo('hero')">Home</button>
-    <button class="nl" onclick="goTo('about')">About</button>
-    <button class="nl" onclick="goTo('skills')">Skills</button>
-    <button class="nl" onclick="goTo('projects')">Projects</button>
-    <button class="nl" onclick="goTo('journey')">Journey</button>
-    <button class="nl" onclick="goTo('contact')">Contact</button>
-  </div>
-  <div class="nav-r">
-    <button class="btn-red" style="padding:9px 22px;font-size:10px" onclick="goTo('contact')">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-      Hire Me
-    </button>
-  </div>
-  <div class="hbg" id="hbg" onclick="toggleMenu()">
-    <span id="h1"></span><span id="h2"></span><span id="h3"></span>
-  </div>
-</nav>
-
-<!-- Mobile Drawer -->
-<div class="drawer" id="drawer">
-  <div class="dl on" onclick="goTo('hero');cMenu()">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-    Home
-  </div>
-  <div class="dl" onclick="goTo('about');cMenu()">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-    About
-  </div>
-  <div class="dl" onclick="goTo('skills');cMenu()">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="2" x2="9" y2="5"/><line x1="15" y1="2" x2="15" y2="5"/><line x1="9" y1="19" x2="9" y2="22"/><line x1="15" y1="19" x2="15" y2="22"/><line x1="2" y1="9" x2="5" y2="9"/><line x1="2" y1="15" x2="5" y2="15"/><line x1="19" y1="9" x2="22" y2="9"/><line x1="19" y1="15" x2="22" y2="15"/></svg>
-    Skills
-  </div>
-  <div class="dl" onclick="goTo('projects');cMenu()">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    Projects
-  </div>
-  <div class="dl" onclick="goTo('journey');cMenu()">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-    Journey
-  </div>
-  <div class="dl" onclick="goTo('contact');cMenu()">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-    Contact
-  </div>
-</div>
-
-<div class="pg">
-
-<!-- ══════════════ HERO ══════════════ -->
-<section id="hero">
-  <div class="hero-grid">
-    <div>
-      <div class="h-badge rv">
-        <div class="h-dot"></div>
-        <span class="h-badge-t">Open to Collaborations</span>
-      </div>
-      <h1 class="h1 rv" style="transition-delay:.07s">
-        Kilari
-        <span class="h1-accent">Karthikeya</span>
-        Naidu.
-      </h1>
-      <p class="h-role rv" style="transition-delay:.13s">Student · Developer · AI Enthusiast</p>
-      <p class="h-tag rv" style="transition-delay:.18s">
-        <em>"Turning Ideas into Intelligent Digital Experiences."</em><br/>
-        12th grade student building real projects with Python, HTML &amp; AI.
-      </p>
-      <div class="h-btns rv" style="transition-delay:.24s">
-        <button class="btn-red" onclick="goTo('projects')">
-          View Projects
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
-        </button>
-        <button class="btn-ghost" onclick="goTo('contact')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-          Contact Me
-        </button>
-      </div>
-      <div class="h-scroll rv" style="transition-delay:.3s" onclick="goTo('about')">
-        <span class="h-scroll-l"></span>Scroll to explore
-      </div>
-    </div>
-    <div class="pcard-col rv-r" style="transition-delay:.18s" id="pcardWrap">
-      <div class="pcard" id="pcard">
-        <div class="pcard-shimmer"></div>
-        <div class="p-avatar">KK</div>
-        <div class="p-name">Kilari Karthikeya Naidu</div>
-        <div class="p-title">Student Developer</div>
-        <div class="p-divider"></div>
-        <div class="p-row">
-          <div class="p-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-          <div><div class="p-lbl">Location</div><div class="p-val">India 🇮🇳</div></div>
-        </div>
-        <div class="p-row">
-          <div class="p-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-          <div><div class="p-lbl">Education</div><div class="p-val">Class XII</div></div>
-        </div>
-        <div class="p-row">
-          <div class="p-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg></div>
-	          <div><div class="p-lbl">Email</div><div class="p-val" style="font-size:10px">karthik.kilari0312<br/>@gmail.com</div></div>
-        </div>
-        <div class="p-row">
-          <div class="p-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="var(--red)" stroke="none"/></svg></div>
-          <div><div class="p-lbl">Instagram</div><div class="p-val">@karthikeya_0312</div></div>
-        </div>
-        <div class="p-status">
-          <div class="p-status-dot"></div>
-          <span class="p-status-t">Available for Projects</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ ABOUT ══════════════ -->
-<section id="about" class="sec">
-  <div class="wrap">
-    <p class="eye rv">// About Me</p>
-    <h2 class="sh rv">A curious mind building the <span style="color:var(--purple);font-style:italic">future</span>, one project at a time.</h2>
-    <div class="about-grid">
-      <div>
-        <p class="ab rv">Hey! I'm <strong>Kilari Karthikeya Naidu</strong> — a passionate <strong>12th grade student</strong> from India with a deep love for coding, AI, and creating things that actually work. I started with Python and HTML, and I've already shipped <strong>4 real projects</strong>.</p>
-        <p class="ab rv">I'm fascinated by <strong>AI prompt engineering</strong> and content generation. I love experimenting with AI tools, building web experiences, and pushing the boundaries of what's possible when creativity meets code.</p>
-        <p class="ab rv">When I'm not at my desk, you'll find me gaming, generating AI art — or most importantly, <strong>irritating mama</strong>. 😄</p>
-        <div class="stats">
-          <div class="st rv"><div class="st-n">4</div><div class="st-l">Projects</div></div>
-          <div class="st rv"><div class="st-n">2</div><div class="st-l">Languages</div></div>
-          <div class="st rv"><div class="st-n">XII</div><div class="st-l">Grade</div></div>
-          <div class="st rv"><div class="st-n">∞</div><div class="st-l">Curiosity</div></div>
-        </div>
-      </div>
-      <div class="ai-panel rv-r">
-        <div class="ai-hd"><div class="ai-dot"></div>AI Reviews of Karthikeya</div>
-        <div class="ai-r">
-          <div class="ai-who"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>GPT-4o</div>
-          <div class="ai-txt">"Karthikeya demonstrates impressive initiative for a student. Building a Chess Game and Image Enhancer shows logical thinking and real creative drive. A name to watch."</div>
-        </div>
-        <div class="ai-r p">
-          <div class="ai-who"><svg width="8" height="8" viewBox="0 0 24 24" fill="var(--purple)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>Gemini</div>
-          <div class="ai-txt">"A self-taught student combining AI enthusiasm with real output — that's rare. The passion for prompt engineering reflects forward-thinking literacy well beyond his years."</div>
-        </div>
-        <div class="ai-r">
-          <div class="ai-who"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96-.44A2.5 2.5 0 013 16.5a2.5 2.5 0 011.5-2.3V9.5A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 004.96-.44A2.5 2.5 0 0121 16.5a2.5 2.5 0 00-1.5-2.3V9.5A2.5 2.5 0 0014.5 2z"/></svg>Claude</div>
-          <div class="ai-txt">"From Emoji Explorer to Chess — Karthikeya builds while he learns, exactly how great developers are made. His curiosity-driven approach is the foundation of something exceptional."</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ SKILLS ══════════════ -->
-<section id="skills" class="sec">
-  <div class="wrap">
-    <p class="eye rv">// Tech Stack</p>
-    <h2 class="sh rv">Skills &amp; Technologies</h2>
-    <p class="ss rv">Growing fast. Building real things. Learning every day.</p>
-    <div class="sk-grid">
-      <div class="sk rv">
-        <div class="sk-glow"></div>
-        <div class="sk-ic">
-          <!-- Python snake logo -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C9.5 2 7.5 3 7.5 5v2h4.5v1H6C4 8 2.5 9.5 2.5 12S4 16 6 16h1v-2.5c0-2 1.5-3.5 3.5-3.5h4c1.5 0 3-1 3-3V5c0-2-2-3-5.5-3zM9.5 4.5c.5 0 1 .5 1 1s-.5 1-1 1-1-.5-1-1 .5-1 1-1z" fill="var(--red)"/>
-            <path d="M18 8h-1v2.5c0 2-1.5 3.5-3.5 3.5H9.5c-1.5 0-3 1-3 3v2.5c0 2 2 3 5.5 3s5.5-1 5.5-3v-2h-4.5v-1H18c2 0 3.5-1.5 3.5-4S20 8 18 8zm-3.5 10.5c.5 0 1 .5 1 1s-.5 1-1 1-1-.5-1-1 .5-1 1-1z" fill="var(--red2)"/>
-          </svg>
-        </div>
-        <div class="sk-n">Python</div>
-        <div class="sk-d">Core language for all projects — games, image processing, AI tools.</div>
-        <div class="sk-t"><div class="sk-f" data-w="55%"></div></div>
-        <div class="sk-p">Beginner · Growing · 55%</div>
-      </div>
-      <div class="sk rv">
-        <div class="sk-glow"></div>
-        <div class="sk-ic pu">
-          <!-- HTML5 logo -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M4 3l1.5 16.5L12 21l6.5-1.5L20 3H4z" fill="var(--purple)" opacity=".3"/>
-            <path d="M12 18.5l4.5-1.3 1-10.2H7.5l.3 3h5.7l-.2 2H7.4l.3 3.5L12 17v1.5z" fill="var(--purple)"/>
-          </svg>
-        </div>
-        <div class="sk-n">HTML / CSS</div>
-        <div class="sk-d">Building structured web layouts with creativity and precision.</div>
-        <div class="sk-t"><div class="sk-f pu" data-w="62%"></div></div>
-        <div class="sk-p pu">Intermediate · 62%</div>
-      </div>
-      <div class="sk rv">
-        <div class="sk-glow"></div>
-        <div class="sk-ic">
-          <!-- AI brain logo -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9.5 2A2.5 2.5 0 007 4.5v1A2.5 2.5 0 004.5 8v1A2.5 2.5 0 002 11.5v1A2.5 2.5 0 004.5 15v1A2.5 2.5 0 007 18.5v1A2.5 2.5 0 009.5 22h5a2.5 2.5 0 002.5-2.5v-1a2.5 2.5 0 002.5-2.5v-1A2.5 2.5 0 0022 12.5v-1A2.5 2.5 0 0019.5 9V8A2.5 2.5 0 0017 5.5v-1A2.5 2.5 0 0014.5 2h-5z"/>
-            <line x1="9" y1="9" x2="9" y2="15"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="15" y1="9" x2="15" y2="15"/>
-          </svg>
-        </div>
-        <div class="sk-n">AI Prompting</div>
-        <div class="sk-d">Crafting precise prompts to unlock the full potential of AI models.</div>
-        <div class="sk-t"><div class="sk-f" data-w="82%"></div></div>
-        <div class="sk-p">Advanced Enthusiast · 82%</div>
-      </div>
-      <div class="sk rv">
-        <div class="sk-glow"></div>
-        <div class="sk-ic pu">
-          <!-- Game controller logo -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="6" width="20" height="12" rx="6"/>
-            <path d="M6 12h4M8 10v4"/><circle cx="15" cy="11" r="1" fill="var(--purple)"/><circle cx="17" cy="13" r="1" fill="var(--purple)"/>
-          </svg>
-        </div>
-        <div class="sk-n">Game Dev</div>
-        <div class="sk-d">Built Tic Tac Toe and full Chess from scratch — pure logic and algorithms.</div>
-        <div class="sk-t"><div class="sk-f pu" data-w="50%"></div></div>
-        <div class="sk-p pu">Learning · 50%</div>
-      </div>
-      <div class="sk rv">
-        <div class="sk-glow"></div>
-        <div class="sk-ic">
-          <!-- Sparkle / AI content logo -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2l2 6h6l-5 3.5 2 6L12 14l-5 3.5 2-6L4 8h6l2-6z" fill="var(--red)" opacity=".9"/>
-            <circle cx="19" cy="5" r="1.5" fill="var(--red2)"/>
-            <circle cx="5" cy="19" r="1" fill="var(--red2)"/>
-          </svg>
-        </div>
-        <div class="sk-n">AI Content Gen</div>
-        <div class="sk-d">Creating images, text and creative ideas using AI tools at expert level.</div>
-        <div class="sk-t"><div class="sk-f" data-w="87%"></div></div>
-        <div class="sk-p">Expert · 87%</div>
-      </div>
-      <div class="sk rv">
-        <div class="sk-glow"></div>
-        <div class="sk-ic pu">
-          <!-- Lightbulb / problem solving -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a7 7 0 017 7c0 2.5-1.3 4.7-3.3 6H8.3A7 7 0 0112 2z"/><rect x="9" y="17" width="6" height="4" rx="1"/><line x1="9" y1="21" x2="15" y2="21"/>
-          </svg>
-        </div>
-        <div class="sk-n">Problem Solving</div>
-        <div class="sk-d">Breaking complex challenges into elegant, working digital solutions.</div>
-        <div class="sk-t"><div class="sk-f pu" data-w="74%"></div></div>
-        <div class="sk-p pu">Strong · 74%</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ PROJECTS ══════════════ -->
-<section id="projects" class="sec">
-  <div class="wrap">
-    <div class="pj-hdr">
-      <div>
-        <p class="eye rv">// Selected Works</p>
-        <h2 class="sh rv">Projects</h2>
-      </div>
-      <div class="rv" style="font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:8px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--red)"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-        4 Projects Shipped
-      </div>
-    </div>
-    <div class="pj-grid">
-
-      <!-- Emoji Explorer -->
-      <div class="pj rv">
-        <div class="pj-thumb">
-          <div class="pj-tc" style="font-size:54px;letter-spacing:8px;opacity:.65">😀🎯✨🔥</div>
-          <div class="pj-ov"></div>
-          <div class="pj-tags"><span class="tag">Web App</span><span class="tag">HTML</span></div>
-          <div class="pj-n-big">01</div>
-        </div>
-        <div class="pj-body">
-	          <!-- Emoji explorer logo -->
-	          <div class="pj-logo" style="background:rgba(255,94,65,.12)">
-	            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-	              <rect x="3" y="3" width="18" height="18" rx="4"/>
-	              <circle cx="9" cy="10" r="1.2" fill="var(--red)" stroke="none"/>
-	              <circle cx="15" cy="10" r="1.2" fill="var(--red)" stroke="none"/>
-	              <path d="M8 14.5c1.2 1.2 2.5 1.8 4 1.8s2.8-.6 4-1.8"/>
-	              <path d="M17.7 5.8l.7-.7M18.8 8h1M17.7 10.2l.7.7"/>
-	            </svg>
-	          </div>
-          <div class="pj-name">Emoji Explorer</div>
-          <div class="pj-desc">Browse, search and discover thousands of emojis with a clean interactive interface. Fast, fun and built entirely from scratch.</div>
-        </div>
-      </div>
-
-      <!-- Image Enhancer -->
-      <div class="pj rv" style="margin-top:36px">
-        <div class="pj-thumb">
-          <div class="pj-tc" style="display:flex;flex-direction:column;align-items:center;gap:8px">
-            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="rgba(255,94,65,.45)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
-            <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,94,65,.4)">AI · HD · ENHANCE</div>
-          </div>
-          <div class="pj-ov"></div>
-          <div class="pj-tags"><span class="tag">AI Tool</span><span class="tag">Python</span></div>
-          <div class="pj-n-big">02</div>
-        </div>
-        <div class="pj-body">
-	          <!-- Image enhancer logo -->
-	          <div class="pj-logo" style="background:rgba(167,139,250,.12)">
-	            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
-	              <rect x="3" y="4" width="18" height="16" rx="3" stroke="var(--purple)" stroke-width="1.5"/>
-	              <path d="M6 15.5l3.5-3.5 2.7 2.7 2.8-3.3 3 3.4" stroke="var(--purple)" stroke-width="1.5"/>
-	              <circle cx="8.2" cy="8.6" r="1.3" fill="var(--purple)" stroke="none"/>
-	              <path d="M18.5 2.5v3M17 4h3" stroke="var(--red)" stroke-width="1.6"/>
-	            </svg>
-	          </div>
-          <div class="pj-name">Image Enhancer</div>
-          <div class="pj-desc">Upload any image and watch AI transform it — sharper, cleaner, higher quality. Python image processing meets intelligent AI enhancement.</div>
-        </div>
-      </div>
-
-      <!-- Tic Tac Toe -->
-      <div class="pj rv">
-        <div class="pj-thumb">
-          <div class="pj-tc">
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:22px;opacity:.72">
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);font-weight:900">✕</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text2);font-weight:900">○</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);font-weight:900">✕</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text2);font-weight:900">○</div>
-              <div style="aspect-ratio:1;background:rgba(255,94,65,.15);border-radius:5px;border:1px solid var(--red);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);font-weight:900">✕</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text2);font-weight:900">○</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text2);font-weight:900">○</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);font-weight:900">✕</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text2);font-weight:900">○</div>
-            </div>
-          </div>
-          <div class="pj-ov"></div>
-          <div class="pj-tags"><span class="tag">Game</span><span class="tag">Python</span></div>
-          <div class="pj-n-big">03</div>
-        </div>
-        <div class="pj-body">
-	          <!-- Tic tac toe logo -->
-	          <div class="pj-logo" style="background:rgba(255,94,65,.12)">
-	            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round">
-	              <rect x="3" y="3" width="18" height="18" rx="4" opacity=".3"/>
-	              <line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>
-	              <line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>
-	              <line x1="5.2" y1="5.2" x2="7.8" y2="7.8"/><line x1="7.8" y1="5.2" x2="5.2" y2="7.8"/>
-	              <circle cx="17.2" cy="17.2" r="1.5"/>
-	            </svg>
-	          </div>
-          <div class="pj-name">Tic Tac Toe</div>
-          <div class="pj-desc">Classic game rebuilt in Python with clean logic and smooth gameplay. Zero bugs, playable anytime — pure fun coded from scratch.</div>
-        </div>
-      </div>
-
-      <!-- Chess -->
-      <div class="pj rv" style="margin-top:36px">
-        <div class="pj-thumb">
-          <div class="pj-tc">
-            <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:16px;opacity:.65;width:100%">
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px">♜</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text2)">♞</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px">♝</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--red)">♛</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px">♚</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text2)">♝</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px">♞</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text2)">♜</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text2)">♟</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px">♟</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text2)">♟</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px">♟</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text2)">♟</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px">♟</div>
-              <div style="aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text2)">♟</div>
-              <div style="aspect-ratio:1;background:var(--card2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px">♟</div>
-            </div>
-          </div>
-          <div class="pj-ov"></div>
-          <div class="pj-tags"><span class="tag">Game</span><span class="tag">Algorithms</span></div>
-          <div class="pj-n-big">04</div>
-        </div>
-        <div class="pj-body">
-	          <!-- Chess logo -->
-	          <div class="pj-logo" style="background:rgba(167,139,250,.12)">
-	            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-	              <path d="M9 18h6M8 20h8"/>
-	              <path d="M9 18V11.5l-1.8-2.7h9.6L15 11.5V18"/>
-	              <circle cx="12" cy="5.2" r="1.7"/>
-	              <path d="M12 7v2M10.7 8.1h2.6"/>
-	            </svg>
-	          </div>
-          <div class="pj-name">Chess Game</div>
-          <div class="pj-desc">Fully functional Chess with every piece, every legal move and all rules — coded entirely by hand. Complex algorithms, elegant solution.</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ JOURNEY ══════════════ -->
-<section id="journey" class="sec">
-  <div class="wrap">
-    <p class="eye rv">// My Journey</p>
-    <h2 class="sh rv">Learning &amp; Growth</h2>
-    <p class="ss rv">Every step has been curiosity-driven. Here's how I've been growing.</p>
-    <div class="tl">
-      <div class="tl-item rv">
-        <div class="tl-l"><div class="tl-dot"></div><div class="tl-date">2025 — Now</div></div>
-        <div class="tl-card">
-          <div class="tl-role">AI Prompt Engineer &amp; Content Creator</div>
-          <div class="tl-org">Self-Directed · Active</div>
-          <div class="tl-desc">Mastering AI prompt engineering — crafting precise instructions that unlock the creative potential of large language models. Building AI content pipelines and exploring the frontier of human-AI collaboration.</div>
-        </div>
-      </div>
-      <div class="tl-item rv">
-        <div class="tl-l"><div class="tl-dot"></div><div class="tl-date">2024 — 2025</div></div>
-        <div class="tl-card">
-          <div class="tl-role">Python Developer &amp; Game Builder</div>
-          <div class="tl-org">Self-Taught · 4 Projects Shipped</div>
-          <div class="tl-desc">Dived deep into Python and built real working projects — from an Emoji Explorer to a full Chess game with complete move validation. Each project pushed my understanding of logic, algorithms, and code structure.</div>
-        </div>
-      </div>
-      <div class="tl-item rv">
-        <div class="tl-l"><div class="tl-dot"></div><div class="tl-date">2024</div></div>
-        <div class="tl-card">
-          <div class="tl-role">Web Developer — HTML &amp; CSS</div>
-          <div class="tl-org">Self-Taught · Ongoing</div>
-          <div class="tl-desc">Started building for the web — learning HTML structure, CSS styling, and turning ideas into interactive pages. Created first web applications and developed a strong sense for digital design.</div>
-        </div>
-      </div>
-      <div class="tl-item rv">
-        <div class="tl-l"><div class="tl-dot" style="background:var(--purple);box-shadow:0 0 12px rgba(167,139,250,.45)"></div><div class="tl-date">Future 🚀</div></div>
-        <div class="tl-card" style="border-color:rgba(167,139,250,.2);background:rgba(167,139,250,.03)">
-          <div class="tl-role" style="color:var(--purple)">Full Stack Developer &amp; AI Builder</div>
-          <div class="tl-org" style="color:var(--purple)">Coming Soon</div>
-          <div class="tl-desc">The goal: master JavaScript, React, and backend development. Build AI-powered web apps that solve real problems. Contribute to the next generation of intelligent digital experiences.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ HOBBIES ══════════════ -->
-<section id="hobbies" class="sec" style="background:var(--bg2);min-height:auto;padding:80px 56px">
-  <div class="wrap">
-    <p class="eye rv">// Life Outside Code</p>
-    <h2 class="sh rv">Hobbies &amp; Interests</h2>
-    <div class="hb-grid">
-      <div class="hb rv"><div class="hb-ico">🤖</div><div><div class="hb-n">AI Prompt Engineering</div><div class="hb-s">Crafting perfect AI prompts</div></div></div>
-      <div class="hb rv"><div class="hb-ico">✍️</div><div><div class="hb-n">AI Content Generation</div><div class="hb-s">Creating with AI tools daily</div></div></div>
-      <div class="hb rv"><div class="hb-ico">🎮</div><div><div class="hb-n">Playing Games</div><div class="hb-s">Chess, strategy &amp; more</div></div></div>
-      <div class="hb rv"><div class="hb-ico">🌐</div><div><div class="hb-n">Making Websites</div><div class="hb-s">Building for the web</div></div></div>
-      <div class="hb rv"><div class="hb-ico">♟️</div><div><div class="hb-n">Chess Strategy</div><div class="hb-s">Even coded my own!</div></div></div>
-      <div class="hb rv"><div class="hb-ico">😄</div><div><div class="hb-n">Irritating Mama</div><div class="hb-s">A certified daily hobby</div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ CONTACT ══════════════ -->
-<section id="contact" class="sec">
-  <div class="c-orb"></div><div class="c-orb2"></div>
-  <div class="c-inner">
-    <p class="eye rv" style="text-align:center">// Get In Touch</p>
-    <h2 class="c-title rv">Let's create<br/>something <span>extraordinary.</span></h2>
-	    <p class="c-sub rv">Fill the form and I'll get back to you. Or reach me directly at <strong style="color:var(--text)">karthik.kilari0312@gmail.com</strong></p>
-
-	    <form class="form rv-s" id="contactForm" onsubmit="sendEmail(event)">
-	      <input type="hidden" name="_subject" value="New Portfolio Contact">
-	      <input type="hidden" name="_template" value="table">
-	      <input type="hidden" name="_captcha" value="false">
-	      <input type="hidden" name="_autoresponse" value="Thanks for contacting me! I received your message and will reply soon. — Karthik Kilari">
-	      <div class="form-grid">
-	        <div class="fi">
-	          <label>Your Name</label>
-	          <input type="text" id="fname" name="name" placeholder="John Doe" autocomplete="off" required/>
-	        </div>
-	        <div class="fi">
-	          <label>Your Email</label>
-	          <input type="email" id="femail" name="email" placeholder="john@email.com" autocomplete="off" required/>
-	        </div>
-	        <div class="fi fi-full">
-	          <label>Subject</label>
-	          <input type="text" id="fsubject" name="subject" placeholder="What's this about?" autocomplete="off"/>
-	        </div>
-	        <div class="fi fi-full">
-	          <label>Message</label>
-	          <textarea id="fmsg" name="message" placeholder="Tell me about your project, idea, or just say hi!" required></textarea>
-	        </div>
-	      </div>
-      <div class="form-bottom">
-        <div class="form-info">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3"/></svg>
-          I'll reply within 24 hours
-        </div>
-	        <button class="btn-submit" id="submitBtn" type="submit">
-	          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
-	          Send Message
-	        </button>
-	      </div>
-	    </form>
-
-    <div class="c-alts rv">
-      <div class="c-alt" onclick="copyEmail()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-        Copy Email Address
-      </div>
-      <div class="c-alt" onclick="showInsta()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        Instagram: @karthikeya_0312
-      </div>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="fl">© 2025 <strong>Kilari Karthikeya Naidu</strong> — Built with passion.</div>
-  <div class="f-links">
-    <span class="f-lk" onclick="copyEmail()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>Email</span>
-    <span class="f-lk" onclick="showInsta()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</span>
-    <span class="f-lk" onclick="goTo('hero')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></svg>Top</span>
-  </div>
-</footer>
-
-</div><!-- end .pg -->
-
-<script>
-// ════════════════════════════════
-// THREE.JS 3D BACKGROUND
-// ════════════════════════════════
-(function(){
-  const canvas = document.getElementById('c');
-  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setSize(innerWidth, innerHeight);
-
-  const scene = new THREE.Scene();
-  const cam = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, .1, 100);
-  cam.position.z = 4;
-
-  // Particle field
-  const N = 2200;
-  const pos = new Float32Array(N*3), col = new Float32Array(N*3);
-  for(let i=0;i<N;i++){
-    pos[i*3]=(Math.random()-.5)*16;
-    pos[i*3+1]=(Math.random()-.5)*16;
-    pos[i*3+2]=(Math.random()-.5)*14;
-    const t=Math.random();
-    if(t<.5){col[i*3]=1;col[i*3+1]=.37;col[i*3+2]=.25;}
-    else if(t<.75){col[i*3]=.66;col[i*3+1]=.55;col[i*3+2]=.98;}
-    else{col[i*3]=.15;col[i*3+1]=.15;col[i*3+2]=.3;}
-  }
-  const geo=new THREE.BufferGeometry();
-  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
-  const mat=new THREE.PointsMaterial({size:.022,vertexColors:true,transparent:true,opacity:.75});
-  scene.add(new THREE.Points(geo,mat));
-
-  // Floating torus rings
-  const rings=[];
-  [{s:.55,tu:1.7,tv:.012,c:0xff5e41,px:2,py:.8,pz:-2,rx:.8,ry:1.5},
-   {s:.4,tu:1.3,tv:.01,c:0xa78bfa,px:-2.2,py:-.6,pz:-2.5,rx:.4,ry:.8},
-   {s:.65,tu:2.0,tv:.011,c:0xff8066,px:.5,py:-1.8,pz:-3,rx:1.2,ry:.3}
-  ].forEach(d=>{
-    const g=new THREE.TorusGeometry(d.s,d.tv,14,80);
-    const m=new THREE.MeshBasicMaterial({color:d.c,transparent:true,opacity:.22});
-    const mesh=new THREE.Mesh(g,m);
-    mesh.position.set(d.px,d.py,d.pz);
-    mesh.rotation.set(d.rx,d.ry,0);
-    scene.add(mesh);
-    rings.push({mesh,sx:d.rx,sy:d.ry});
-  });
-
-  // Wireframe icosahedron
-  const icoG=new THREE.IcosahedronGeometry(1.1,1);
-  const icoM=new THREE.MeshBasicMaterial({color:0xff5e41,wireframe:true,transparent:true,opacity:.06});
-  const ico=new THREE.Mesh(icoG,icoM);
-  ico.position.set(3,1,-3);
-  scene.add(ico);
-
-  // Second icosahedron
-  const ico2G=new THREE.IcosahedronGeometry(.7,1);
-  const ico2M=new THREE.MeshBasicMaterial({color:0xa78bfa,wireframe:true,transparent:true,opacity:.07});
-  const ico2=new THREE.Mesh(ico2G,ico2M);
-  ico2.position.set(-3,-1,-4);
-  scene.add(ico2);
-
-  let mx=0,my=0,t=0;
-  document.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*.5;my=(e.clientY/innerHeight-.5)*.5});
-  window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-
-  (function animate(){
-    requestAnimationFrame(animate);
-    t+=.007;
-    const pts=scene.children[0];
-    pts.rotation.y=t*.035;
-    pts.rotation.x=t*.012;
-    cam.position.x+=(mx-cam.position.x)*.04;
-    cam.position.y+=(-my-cam.position.y)*.04;
-    rings.forEach((r,i)=>{r.mesh.rotation.x+=.004+i*.001;r.mesh.rotation.y+=.003+i*.0008;r.mesh.position.y+=Math.sin(t+i)*.0025});
-    ico.rotation.x+=.006;ico.rotation.y+=.004;
-    ico2.rotation.x-=.005;ico2.rotation.y+=.007;
-    renderer.render(scene,cam);
-  })();
-})();
-
-// ════════════════════════════════
-// CURSOR
-// ════════════════════════════════
-const cur=document.getElementById('cur'),curR=document.getElementById('curR');
-let cx=0,cy=0,rx2=0,ry2=0;
-document.addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY});
-(function curAnim(){
-  cur.style.left=cx+'px';cur.style.top=cy+'px';
-  rx2+=(cx-rx2)*.12;ry2+=(cy-ry2)*.12;
-  curR.style.left=rx2+'px';curR.style.top=ry2+'px';
-  requestAnimationFrame(curAnim);
-})();
-document.querySelectorAll('button,a,.pj,.sk,.hb,.c-alt,.f-lk,.h-scroll,.tl-card').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{curR.style.width='48px';curR.style.height='48px';cur.style.transform='translate(-50%,-50%) scale(1.8)'});
-  el.addEventListener('mouseleave',()=>{curR.style.width='32px';curR.style.height='32px';cur.style.transform='translate(-50%,-50%) scale(1)'});
-});
-
-// ════════════════════════════════
-// 3D CARD TILT
-// ════════════════════════════════
-const pcardEl=document.getElementById('pcard');
-const pcardW=document.getElementById('pcardWrap');
-if(pcardW){
-  pcardW.addEventListener('mousemove',e=>{
-    const r=pcardW.getBoundingClientRect();
-    const x=e.clientX-r.left-r.width/2;
-    const y=e.clientY-r.top-r.height/2;
-    pcardEl.style.transform=`perspective(800px) rotateX(${-(y/r.height)*18}deg) rotateY(${(x/r.width)*18}deg) scale3d(1.02,1.02,1.02)`;
-  });
-  pcardW.addEventListener('mouseleave',()=>{pcardEl.style.transform='perspective(800px) rotateX(0) rotateY(0) scale3d(1,1,1)'});
-}
-
-// ════════════════════════════════
-// NAV + SCROLL
-// ════════════════════════════════
-const navEl=document.getElementById('nav');
-const secIds=['hero','about','skills','projects','journey','hobbies','contact'];
-const navBtns=document.querySelectorAll('.nl');
-const drawerLinks=document.querySelectorAll('.dl');
-
-function setActive(id){
-  navBtns.forEach((b,i)=>b.classList.toggle('on',secIds[i]===id));
-  drawerLinks.forEach((b,i)=>b.classList.toggle('on',secIds[i]===id));
-}
-
-const sObs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)setActive(e.target.id)}),{threshold:.25});
-secIds.forEach(id=>{const el=document.getElementById(id);if(el)sObs.observe(el)});
-window.addEventListener('scroll',()=>navEl.classList.toggle('solid',scrollY>50),{passive:true});
-
-function goTo(id){
-  const el=document.getElementById(id);
-  if(el)window.scrollTo({top:el.getBoundingClientRect().top+scrollY-64,behavior:'smooth'});
-}
-
-// ════════════════════════════════
-// MOBILE MENU
-// ════════════════════════════════
-let mOpen=false;
-function toggleMenu(){
-  mOpen=!mOpen;
-  document.getElementById('drawer').classList.toggle('open',mOpen);
-  const [a,b,cc]=['h1','h2','h3'].map(i=>document.getElementById(i));
-  if(mOpen){a.style.cssText='transform:rotate(45deg) translate(5px,5px)';b.style.cssText='opacity:0';cc.style.cssText='transform:rotate(-45deg) translate(5px,-5px)'}
-  else{a.style.cssText=b.style.cssText=cc.style.cssText=''}
-}
-function cMenu(){mOpen=false;document.getElementById('drawer').classList.remove('open');['h1','h2','h3'].forEach(i=>{document.getElementById(i).style.cssText=''})}
-document.addEventListener('click',e=>{if(mOpen&&!e.target.closest('.drawer')&&!e.target.closest('.hbg'))cMenu()});
-
-// ════════════════════════════════
-// TOAST
-// ════════════════════════════════
-let tT;
-function toast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.classList.add('show');
-  clearTimeout(tT);tT=setTimeout(()=>el.classList.remove('show'),3200);
-}
-
-// ════════════════════════════════
-// EMAIL ACTIONS
-// ════════════════════════════════
-const EMAIL='karthik.kilari0312@gmail.com';
-function copyEmail(){
-  if(navigator.clipboard?.writeText){navigator.clipboard.writeText(EMAIL).then(()=>toast('✓ Email copied to clipboard!'))}
-  else{const ta=Object.assign(document.createElement('textarea'),{value:EMAIL,style:'position:fixed;opacity:0'});document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Email copied!')}
-}
-function showInsta(){toast('📸 Instagram: @karthikeya_0312')}
-
-// ════════════════════════════════
-// CONTACT FORM — sends via FormSubmit + auto-reply
-// ════════════════════════════════
-async function sendEmail(e){
-  if(e)e.preventDefault();
-  const name=document.getElementById('fname').value.trim();
-  const email=document.getElementById('femail').value.trim();
-  const subject=document.getElementById('fsubject').value.trim();
-  const msg=document.getElementById('fmsg').value.trim();
-  if(!name||!email||!msg){toast('⚠ Please fill in all required fields');return}
-  if(!document.getElementById('femail').checkValidity()){toast('⚠ Please enter a valid email');return}
-  const btn=document.getElementById('submitBtn');
-  btn.disabled=true;btn.textContent='Sending...';
-  try{
-    const payload={
-      name,
-      email,
-      subject:subject||'Portfolio Contact from '+name,
-      message:msg,
-      _subject:'New Portfolio Contact',
-      _template:'table',
-      _captcha:'false',
-      _autoresponse:'Thanks for contacting me! I received your message and will reply soon. — Karthik Kilari'
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy-First PDF Workstation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { inter: ['Inter', 'sans-serif'] },
+          colors: {
+            coreBg: '#F9FAFB',
+            coreBlue: '#2563EB'
+          }
+        }
+      }
     };
-    const res=await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(EMAIL)}`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify(payload)
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body class="font-inter bg-coreBg text-slate-800">
+  <div class="min-h-screen">
+    <header class="border-b bg-white sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold">PDF Workstation Pro</h1>
+          <p class="text-sm text-slate-500">All-in-browser • Multi-tool • Student-friendly</p>
+        </div>
+        <div class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Privacy First: No Files Uploaded
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <section class="lg:col-span-3 space-y-4">
+        <div class="bg-white rounded-2xl border p-4">
+          <label class="text-sm font-semibold">Upload PDF</label>
+          <input id="pdfInput" type="file" accept="application/pdf" class="mt-2 block w-full text-sm" />
+          <p id="pdfMeta" class="mt-2 text-xs text-slate-500">No PDF loaded.</p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="combine" class="icon"></i> Merge PDFs</h3>
+            <input id="mergeInput" type="file" accept="application/pdf" multiple class="field" />
+            <button class="btn" onclick="mergePdfs()">Merge & Download</button>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="scissors" class="icon"></i> Split PDF</h3>
+            <input id="splitRange" class="field" placeholder="e.g., 1-2 or 3" />
+            <button class="btn" onclick="splitPdf()">Split & Download</button>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="rotate-cw" class="icon"></i> Rotate Pages</h3>
+            <input id="rotateDeg" type="number" class="field" value="90" />
+            <button class="btn" onclick="rotatePdf()">Rotate & Download</button>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="trash-2" class="icon"></i> Remove Pages</h3>
+            <input id="removePages" class="field" placeholder="e.g., 2,4,6" />
+            <button class="btn" onclick="removePages()">Remove & Download</button>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="image-up" class="icon"></i> Image → PDF</h3>
+            <input id="imgToPdfInput" type="file" accept="image/*" multiple class="field" />
+            <button class="btn" onclick="imagesToPdf()">Convert & Download</button>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="image-down" class="icon"></i> PDF → Image</h3>
+            <button class="btn" onclick="pdfToImages()">Export PNG Pages</button>
+            <p class="text-xs text-slate-500 mt-2">Downloads each page as PNG.</p>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="lock" class="icon"></i> Add Password</h3>
+            <input id="pwdInput" class="field" placeholder="Enter password" type="password" />
+            <button class="btn" onclick="addPassword()">Protect PDF</button>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="unlock" class="icon"></i> Remove Password</h3>
+            <input id="oldPwdInput" class="field" placeholder="Existing password" type="password" />
+            <button class="btn" onclick="removePassword()">Unlock PDF</button>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title"><i data-lucide="stamp" class="icon"></i> Watermark</h3>
+            <input id="wmText" class="field" placeholder="Watermark text" />
+            <input id="wmImage" type="file" accept="image/*" class="field mt-2" />
+            <button class="btn" onclick="addWatermark()">Apply Watermark</button>
+          </article>
+
+          <article class="card sm:col-span-2 xl:col-span-3">
+            <h3 class="card-title"><i data-lucide="pen-square" class="icon"></i> Signature Pad</h3>
+            <canvas id="sigPad" class="w-full h-40 border rounded-xl bg-white"></canvas>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button class="btn" onclick="clearSignature()">Clear</button>
+              <button class="btn" onclick="applySignature()">Apply Signature to PDF</button>
+            </div>
+          </article>
+
+          <article class="card sm:col-span-2 xl:col-span-3">
+            <h3 class="card-title"><i data-lucide="edit-3" class="icon"></i> Basic Editor (Text + Shape)</h3>
+            <div class="grid sm:grid-cols-2 gap-2">
+              <input id="editText" class="field" placeholder="Overlay text" />
+              <input id="textPage" class="field" type="number" min="1" value="1" placeholder="Page" />
+              <input id="textX" class="field" type="number" value="60" placeholder="X" />
+              <input id="textY" class="field" type="number" value="700" placeholder="Y" />
+              <input id="rectPage" class="field" type="number" min="1" value="1" placeholder="Page" />
+              <input id="rectColor" class="field" value="#2563EB" placeholder="Rect color" />
+            </div>
+            <button class="btn mt-2" onclick="editPdf()">Apply Overlay</button>
+          </article>
+
+          <article class="card sm:col-span-2 xl:col-span-3">
+            <h3 class="card-title"><i data-lucide="sparkles" class="icon"></i> AI PDF Summarizer (Gemini)</h3>
+            <input id="geminiKey" class="field" type="password" placeholder="Paste Gemini API key" />
+            <button class="btn mt-2" onclick="summarizePdf()">Summarize First 3000 Words</button>
+            <pre id="summaryOutput" class="mt-3 bg-slate-50 border rounded-xl p-3 text-xs whitespace-pre-wrap min-h-[80px]"></pre>
+          </article>
+        </div>
+      </section>
+
+      <aside class="bg-white rounded-2xl border p-4 h-fit lg:sticky lg:top-24">
+        <h2 class="font-bold text-lg">Workspace Gear</h2>
+        <p class="text-xs text-slate-500 mb-3">Amazon Affiliate Picks for PDF Pros</p>
+        <div class="space-y-3 text-sm">
+          <a class="affiliate" href="https://www.amazon.in/s?k=Topaz+SigLite+T-S460" target="_blank" rel="noopener noreferrer">
+            <strong>Topaz SigLite T-S460</strong>
+            <span>Electronic signature pad • High-volume signing</span>
+          </a>
+          <a class="affiliate" href="https://www.amazon.in/s?k=HP+ScanJet+Pro+2000+s2" target="_blank" rel="noopener noreferrer">
+            <strong>HP ScanJet Pro 2000 s2</strong>
+            <span>Sheet-feed scanner • Document digitization</span>
+          </a>
+          <a class="affiliate" href="https://www.amazon.com/s?k=usb+document+camera" target="_blank" rel="noopener noreferrer">
+            <strong>USB Document Camera</strong>
+            <span>Fast class notes capture for students</span>
+          </a>
+          <a class="affiliate" href="https://www.amazon.com/s?k=ergonomic+office+chair" target="_blank" rel="noopener noreferrer">
+            <strong>Ergonomic Office Chair</strong>
+            <span>Long editing sessions with better posture</span>
+          </a>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <style>
+    .card { background:#fff; border:1px solid rgb(226 232 240); border-radius:1rem; padding:1rem; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+    .card-title { font-weight:600; font-size:.875rem; margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem; }
+    .icon { width:1rem; height:1rem; color:#2563EB; }
+    .field { width:100%; font-size:.875rem; border-radius:.75rem; border:1px solid rgb(203 213 225); padding:.5rem .75rem; background:rgb(248 250 252); }
+    .btn { margin-top:.5rem; display:inline-flex; align-items:center; justify-content:center; border-radius:.75rem; background:#2563EB; color:#fff; padding:.5rem .75rem; font-size:.875rem; font-weight:600; }
+    .btn:hover { opacity:.95; }
+    .affiliate { display:block; border:1px solid rgb(226 232 240); border-radius:.75rem; padding:.75rem; }
+    .affiliate:hover { background:rgb(248 250 252); }
+    .affiliate span { display:block; font-size:.75rem; color:rgb(100 116 139); margin-top:.25rem; }
+  </style>
+
+  <script>
+    const { PDFDocument, rgb, degrees, StandardFonts } = PDFLib;
+    const pdfInput = document.getElementById('pdfInput');
+    const pdfMeta = document.getElementById('pdfMeta');
+    let currentPdfBytes = null;
+
+    const sigCanvas = document.getElementById('sigPad');
+    function resizeCanvas() {
+      sigCanvas.width = sigCanvas.offsetWidth;
+      sigCanvas.height = sigCanvas.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    const signaturePad = new SignaturePad(sigCanvas);
+
+    pdfInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      currentPdfBytes = await file.arrayBuffer();
+      pdfMeta.textContent = `${file.name} loaded (${(file.size/1024).toFixed(1)} KB)`;
     });
-    if(!res.ok)throw new Error('Request failed');
-    const out=await res.json();
-    if(out.success!=='true' && out.success!==true)throw new Error('Submission not accepted');
-    btn.disabled=false;
-    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg> Send Message';
-    document.getElementById('fname').value=document.getElementById('femail').value=document.getElementById('fsubject').value=document.getElementById('fmsg').value='';
-    toast('✓ Message sent! Auto-reply enabled.');
-  }catch(err){
-    btn.disabled=false;
-    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg> Send Message';
-    toast('⚠ Could not send right now. Please try again.');
-  }
-}
 
-// ════════════════════════════════
-// SCROLL REVEAL
-// ════════════════════════════════
-const rvEls=document.querySelectorAll('.rv,.rv-l,.rv-r,.rv-s');
-const rvObs=new IntersectionObserver(entries=>{
-  entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('on'),i*55)});
-},{threshold:.07});
-rvEls.forEach(el=>rvObs.observe(el));
+    function triggerDownload(bytes, filename) {
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
 
-// ════════════════════════════════
-// SKILL BARS
-// ════════════════════════════════
-document.querySelectorAll('.sk-f').forEach(bar=>{
-  const o=new IntersectionObserver(entries=>{
-    if(entries[0].isIntersecting){bar.style.width=bar.getAttribute('data-w');o.disconnect()}
-  },{threshold:.4});
-  o.observe(bar);
-});
+    async function getLoadedPdf(password) {
+      if (!currentPdfBytes) throw new Error('Please upload a PDF first.');
+      return PDFDocument.load(currentPdfBytes, password ? { password } : {});
+    }
 
-// ════════════════════════════════
-// SECTION ENTER ANIMATION
-// ════════════════════════════════
-const secObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='none'}
-  });
-},{threshold:.05});
-document.querySelectorAll('section').forEach(s=>{
-  s.style.transition='opacity .5s ease, transform .5s ease';
-  secObs.observe(s);
-});
-</script>
+    async function mergePdfs() {
+      const files = document.getElementById('mergeInput').files;
+      if (!files.length) return alert('Select PDFs to merge.');
+      const out = await PDFDocument.create();
+      for (const file of files) {
+        const bytes = await file.arrayBuffer();
+        const src = await PDFDocument.load(bytes);
+        const copied = await out.copyPages(src, src.getPageIndices());
+        copied.forEach(p => out.addPage(p));
+      }
+      triggerDownload(await out.save(), 'merged.pdf');
+    }
+
+    async function splitPdf() {
+      try {
+        const doc = await getLoadedPdf();
+        const range = document.getElementById('splitRange').value.trim();
+        const [a, b] = range.includes('-') ? range.split('-').map(n => +n) : [+range, +range];
+        const out = await PDFDocument.create();
+        const indices = Array.from({ length: b - a + 1 }, (_, i) => a + i - 1).filter(i => i >= 0 && i < doc.getPageCount());
+        const copied = await out.copyPages(doc, indices);
+        copied.forEach(p => out.addPage(p));
+        triggerDownload(await out.save(), `split_${a}-${b}.pdf`);
+      } catch (e) { alert(e.message); }
+    }
+
+    async function rotatePdf() {
+      try {
+        const doc = await getLoadedPdf();
+        const deg = Number(document.getElementById('rotateDeg').value || 90);
+        doc.getPages().forEach(p => p.setRotation(degrees(deg)));
+        triggerDownload(await doc.save(), 'rotated.pdf');
+      } catch (e) { alert(e.message); }
+    }
+
+    async function removePages() {
+      try {
+        const doc = await getLoadedPdf();
+        const pages = document.getElementById('removePages').value.split(',').map(v => +v.trim() - 1).filter(v => v >= 0).sort((a,b)=>b-a);
+        pages.forEach(i => { if (i < doc.getPageCount()) doc.removePage(i); });
+        triggerDownload(await doc.save(), 'pages-removed.pdf');
+      } catch (e) { alert(e.message); }
+    }
+
+    async function imagesToPdf() {
+      const files = document.getElementById('imgToPdfInput').files;
+      if (!files.length) return alert('Select images first.');
+      const doc = await PDFDocument.create();
+      for (const file of files) {
+        const bytes = await file.arrayBuffer();
+        const isPng = file.type.includes('png');
+        const img = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+        const page = doc.addPage([img.width, img.height]);
+        page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      }
+      triggerDownload(await doc.save(), 'images-to-pdf.pdf');
+    }
+
+    async function pdfToImages() {
+      try {
+        if (!currentPdfBytes) throw new Error('Upload a PDF first.');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const loadingTask = pdfjsLib.getDocument({ data: currentPdfBytes });
+        const pdf = await loadingTask.promise;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `page-${i}.png`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          });
+        }
+      } catch (e) { alert(e.message); }
+    }
+
+    async function addPassword() {
+      try {
+        const pwd = document.getElementById('pwdInput').value;
+        if (!pwd) return alert('Enter a password.');
+        const doc = await getLoadedPdf();
+        triggerDownload(await doc.save({ userPassword: pwd, ownerPassword: pwd + '_owner' }), 'protected.pdf');
+      } catch (e) { alert('Encryption may depend on pdf-lib version: ' + e.message); }
+    }
+
+    async function removePassword() {
+      try {
+        const pwd = document.getElementById('oldPwdInput').value;
+        const doc = await getLoadedPdf(pwd);
+        triggerDownload(await doc.save(), 'unlocked.pdf');
+      } catch (e) { alert(e.message); }
+    }
+
+    async function addWatermark() {
+      try {
+        const doc = await getLoadedPdf();
+        const text = document.getElementById('wmText').value.trim();
+        const imageFile = document.getElementById('wmImage').files[0];
+        let wmImage;
+        if (imageFile) {
+          const bytes = await imageFile.arrayBuffer();
+          wmImage = imageFile.type.includes('png') ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+        }
+        for (const p of doc.getPages()) {
+          const { width, height } = p.getSize();
+          if (text) {
+            p.drawText(text, { x: width * 0.2, y: height * 0.5, size: 36, color: rgb(0.4, 0.4, 0.4), rotate: degrees(35), opacity: 0.35 });
+          }
+          if (wmImage) {
+            p.drawImage(wmImage, { x: width - 140, y: 20, width: 120, height: 50, opacity: 0.35 });
+          }
+        }
+        triggerDownload(await doc.save(), 'watermarked.pdf');
+      } catch (e) { alert(e.message); }
+    }
+
+    function clearSignature() {
+      signaturePad.clear();
+    }
+
+    async function applySignature() {
+      try {
+        if (signaturePad.isEmpty()) return alert('Please draw a signature first.');
+        const doc = await getLoadedPdf();
+        const pngDataUrl = signaturePad.toDataURL('image/png');
+        const pngBytes = await fetch(pngDataUrl).then(r => r.arrayBuffer());
+        const sigImg = await doc.embedPng(pngBytes);
+        const page = doc.getPages()[0];
+        page.drawImage(sigImg, { x: 50, y: 60, width: 180, height: 70 });
+        triggerDownload(await doc.save(), 'signed.pdf');
+      } catch (e) { alert(e.message); }
+    }
+
+    async function editPdf() {
+      try {
+        const doc = await getLoadedPdf();
+        const text = document.getElementById('editText').value || 'Sample overlay';
+        const pageIndex = Number(document.getElementById('textPage').value || 1) - 1;
+        const x = Number(document.getElementById('textX').value || 60);
+        const y = Number(document.getElementById('textY').value || 700);
+        const rectPage = Number(document.getElementById('rectPage').value || 1) - 1;
+        const rectColorHex = document.getElementById('rectColor').value || '#2563EB';
+
+        const textPage = doc.getPages()[Math.max(0, Math.min(pageIndex, doc.getPageCount() - 1))];
+        const font = await doc.embedFont(StandardFonts.Helvetica);
+        textPage.drawText(text, { x, y, size: 18, font, color: rgb(0.15, 0.2, 0.3) });
+
+        const rp = doc.getPages()[Math.max(0, Math.min(rectPage, doc.getPageCount() - 1))];
+        const rgbColor = hexToRgb(rectColorHex);
+        rp.drawRectangle({ x: 50, y: 50, width: 120, height: 40, color: rgb(rgbColor.r / 255, rgbColor.g / 255, rgbColor.b / 255), opacity: 0.25, borderWidth: 1 });
+
+        triggerDownload(await doc.save(), 'edited.pdf');
+      } catch (e) { alert(e.message); }
+    }
+
+    function hexToRgb(hex) {
+      const clean = hex.replace('#', '');
+      const bigint = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
+      return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+    }
+
+    async function summarizePdf() {
+      try {
+        if (!currentPdfBytes) return alert('Upload a PDF first.');
+        const key = document.getElementById('geminiKey').value.trim();
+        if (!key) return alert('Enter Gemini API key.');
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data: currentPdfBytes }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(it => it.str).join(' ') + '\n';
+          if (text.split(/\s+/).length > 3000) break;
+        }
+        const limited = text.split(/\s+/).slice(0, 3000).join(' ');
+
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `Summarize this PDF content clearly in bullet points and action items:\n\n${limited}` }] }]
+          })
+        });
+        const data = await res.json();
+        const out = data?.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data, null, 2);
+        document.getElementById('summaryOutput').textContent = out;
+      } catch (e) {
+        document.getElementById('summaryOutput').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    lucide.createIcons();
+  </script>
 </body>
 </html>
